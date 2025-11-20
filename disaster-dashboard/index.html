@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Post-Disaster Image Analysis Dashboard</title>
+
+  <!-- Meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Post-disaster image restoration and severity classification dashboard using GANs and CNNs."
+  />
+
+  <!-- Google Font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Bootstrap -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+  />
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark navbar-expand-lg glass-nav">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">
+        <span class="brand-dot"></span>
+        DisasterVision
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navContent"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="#dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#insights">Insights</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero / Overview -->
+  <section id="overview" class="py-5">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+          <h1 class="display-5 fw-bold mb-3 text-gradient">
+            Post-Disaster Image Restoration &amp; Severity Classification
+          </h1>
+          <p class="text-muted mb-4">
+            This dashboard visualizes the output of our pipeline: ESRGAN-based image
+            enhancement, segmentation for damage detection, and CNN-based severity
+            classification. It helps authorities quickly understand the impact of
+            disasters on critical infrastructure.
+          </p>
+
+          <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+            <button class="btn btn-primary btn-lg shadow-soft" disabled>
+              Upload Image
+            </button>
+            <div class="d-flex gap-2 small text-muted">
+              <div class="dot"></div> 
+              <span></span>
+            </div>
+          </div>
+
+          <div class="row g-3 small">
+            <div class="col-6">
+              <div class="mini-card">
+                <div class="label">Models Used</div>
+                <div class="value">ESRGAN, Segmentation, CNN</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="mini-card">
+                <div class="label">Use Case</div>
+                <div class="value">Post-disaster rapid assessment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary card -->
+        <div class="col-lg-6">
+          <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h5 class="mb-1">Latest Analysed Scene</h5>
+                <p class="text-muted small mb-0" id="locationLabel">
+                  Chennai Coastal Region • Cyclone / Flooding
+                </p>
+              </div>
+              <span id="severityBadge" class="severity-badge severity-high">
+                Severity: High
+              </span>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="summary-stat">
+                  <div class="label">Severity Score</div>
+                  <div class="value" id="sevScore">0.86</div>
+                  <div class="hint">0 (safe) → 1 (critical)</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="summary-stat">
+                  <div class="label">Damaged Area</div>
+                  <div class="value" id="damagePercent">62%</div>
+                  <div class="hint">of total visible region</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="summary-stat">
+                  <div class="label">Buildings Affected</div>
+                  <div class="value" id="buildingsAffected">248</div>
+                  <div class="hint">residential + commercial</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="summary-stat">
+                  <div class="label">Population at Risk</div>
+                  <div class="value" id="populationAtRisk">3,100</div>
+                  <div class="hint">estimated</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider my-3"></div>
+            <div class="d-flex justify-content-between small text-muted">
+              <span id="captureTime">Captured: --</span>
+              <span>Inference time: &lt; 3s (simulated)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboard" class="py-5 bg-panel">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">Analysis Dashboard</h3>
+        <span class="badge rounded-pill bg-dark-subtle text-light small">
+          Output from segmentation + severity classifier
+        </span>
+      </div>
+
+      <div class="row g-4">
+        <!-- Images -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-soft h-100">
+            <div class="card-body">
+              <ul class="nav nav-tabs mb-3" id="imageTabs">
+                <li class="nav-item">
+                  <button
+                    class="nav-link active"
+                    data-bs-toggle="tab"
+                    data-bs-target="#originalTab"
+                  >
+                    Original / Enhanced Image
+                  </button>
+                </li>
+                <li class="nav-item">
+                  <button
+                    class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#maskedTab"
+                  >
+                    Segmented / Masked Image
+                  </button>
+                </li>
+              </ul>
+
+              <div class="tab-content">
+                <div class="tab-pane fade show active" id="originalTab">
+                  <img
+                    id="originalImage"
+                    src="assets/original_sample.png"
+                    alt="Original Disaster Image"
+                    class="img-fluid rounded-4 border-img mb-2"
+                  />
+                  <p class="small text-muted mb-0">
+                    Input after ESRGAN-based super-resolution and enhancement.
+                  </p>
+                </div>
+                <div class="tab-pane fade" id="maskedTab">
+                  <img
+                    id="maskedImage"
+                    src="assets/masked_sample.png"
+                    alt="Masked Disaster Image"
+                    class="img-fluid rounded-4 border-img mb-2"
+                  />
+                  <p class="small text-muted mb-0">
+                    Damage regions highlighted based on segmentation model output.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="col-lg-6">
+          <div class="row g-4">
+            <div class="col-12">
+              <div class="card border-0 shadow-soft">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Damage vs Undamaged Area</h5>
+                  <canvas id="damagePieChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="card border-0 shadow-soft">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Impact on Infrastructure</h5>
+                  <canvas id="impactBarChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- row -->
+    </div>
+  </section>
+
+  <!-- Insights -->
+  <section id="insights" class="py-5">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">Generated Insights</h3>
+        <span class="badge rounded-pill bg-info-subtle text-info-emphasis small">
+          
+        </span>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="card border-0 shadow-soft h-100">
+            <div class="card-body">
+              <h5 class="mb-3">Key Observations</h5>
+              <ul id="insightsList" class="list-unstyled insights-list">
+                <!-- Filled by JS -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-soft h-100">
+            <div class="card-body">
+              <h5 class="mb-3">Severity Breakdown</h5>
+              <div class="timeline small" id="severityTimeline">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-3 border-top border-secondary-subtle">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center small text-muted">
+      <span>© 2025 DisasterVision – FYP</span>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+</html>
